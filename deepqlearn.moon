@@ -35,13 +35,13 @@ table.length = (T) ->
 -- state that resulted from the action. This is later used to train the network
 -- Remember that the utility of an action is evaluated from the reward gained and
 -- the utility of the state it led to (recursive definition)
-	Experience =
 export Experience = (state0, action0, reward0, state1) ->
+	NewExperience =
 		state0: state0
 		action0: action0
 		reward0: reward0
 		state1: state1
-	return Experience
+	return NewExperience
 
 -- BRAIN
 
