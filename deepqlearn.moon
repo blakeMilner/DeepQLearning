@@ -10,7 +10,7 @@ Brain = {}
 
 --  HELPER FUNCTIONS --
  
-randf = (s, e) ->
+export randf = (s, e) ->
 	return (math.random(0, (e - s) * 9999) / 10000) + s
 
 -- new methods for table
@@ -35,8 +35,8 @@ table.length = (T) ->
 -- state that resulted from the action. This is later used to train the network
 -- Remember that the utility of an action is evaluated from the reward gained and
 -- the utility of the state it led to (recursive definition)
-Experience = (state0, action0, reward0, state1) ->
 	Experience =
+export Experience = (state0, action0, reward0, state1) ->
 		state0: state0
 		action0: action0
 		reward0: reward0
