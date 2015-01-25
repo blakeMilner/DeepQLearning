@@ -312,55 +312,55 @@ Brain.backward = (reward) ->
 			-- compute best action for the new state
 			best_action = Brain.policy e.state1
 
-		-- get current action output values
-		-- we want to make the target outputs the same as the actual outputs
-		-- expect for the action that was chose - we want to replace this with
-		-- the reward that was obtained + the utility of the resulting state
+			-- get current action output values
+			-- we want to make the target outputs the same as the actual outputs
+			-- expect for the action that was chose - we want to replace this with
+			-- the reward that was obtained + the utility of the resulting state
 			all_outputs = Brain.net\forward x
 			inputs[k] = x\clone!
 			targets[k] = all_outputs\clone!
 			targets[k][e.action0] = e.reward0 + Brain.gamma * best_action.value
 
-	-- create training function to give to optim.sgd
-	feval = (x) ->
-		collectgarbage!
+		-- create training function to give to optim.sgd
+		feval = (x) ->
+			collectgarbage!
 
-		-- get new network parameters
-		Brain.parameters\copy x unless x == Brain.parameters
+			-- get new network parameters
+			Brain.parameters\copy x unless x == Brain.parameters
 
-		-- reset gradients
-		Brain.gradParameters\zero!
+			-- reset gradients
+			Brain.gradParameters\zero!
 
-		-- evaluate function for complete mini batch
-		outputs = Brain.net\forward inputs
-		f = Brain.criterion\forward outputs, targets
+			-- evaluate function for complete mini batch
+			outputs = Brain.net\forward inputs
+			f = Brain.criterion\forward outputs, targets
 
-		-- estimate df/dW
-		df_do = Brain.criterion\backward outputs, targets
-		Brain.net\backward inputs, df_do
+			-- estimate df/dW
+			df_do = Brain.criterion\backward outputs, targets
+			Brain.net\backward inputs, df_do
 
-		-- penalties (L1 and L2):
-		if Brain.coefL1 != 0 or Brain.coefL2 != 0
-			-- locals:
-			norm,sign = torch.norm, torch.sign
+			-- penalties (L1 and L2):
+			if Brain.coefL1 != 0 or Brain.coefL2 != 0
+				-- locals:
+				norm,sign = torch.norm, torch.sign
 
-			-- Loss:
-			f += Brain.coefL1 * norm Brain.parameters, 1
-			f += Brain.coefL2 * 0.5 * norm(Brain.parameters, 2) ^ 2
+				-- Loss:
+				f += Brain.coefL1 * norm Brain.parameters, 1
+				f += Brain.coefL2 * 0.5 * norm(Brain.parameters, 2) ^ 2
 
-			-- Gradients:
-			Brain.gradParameters\add(sign(Brain.parameters)\mul Brain.coefL1 + Brain.parameters\clone!\mul Brain.coefL2)
+				-- Gradients:
+				Brain.gradParameters\add(sign(Brain.parameters)\mul(Brain.coefL1) + Brain.parameters\clone!\mul Brain.coefL2)
 
-		-- return f and df/dX
-		return f, Brain.gradParameters
+			-- return f and df/dX
+			return f, Brain.gradParameters
 
-	-- fire up optim.sgd
-	sgdState =
-		learningRate: Brain.learning_rate
-		momentum: Brain.momentum
-		learningRateDecay: Brain.learning_rate_decay
-	
-	optim.sgd feval, Brain.parameters, sgdState
+		-- fire up optim.sgd
+		sgdState =
+			learningRate: Brain.learning_rate
+			momentum: Brain.momentum
+			learningRateDecay: Brain.learning_rate_decay
+		
+		optim.sgd feval, Brain.parameters, sgdState
 
 
 
