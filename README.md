@@ -68,7 +68,7 @@ An action can be selected from an input state space using:
 action = Brain.forward(state); 
 ```
 
-Learning can be effected from the last state space input to Brian.forward by giving a reward value:
+Learning can be affected from the last state space input to Brian.forward by giving a reward value:
 
 ```bash
 Brain.backward(reward); 
