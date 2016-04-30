@@ -37,21 +37,6 @@ function table.length(T)
   return count
 end
 
---[[ returns experience table for single network decision
-	 contains the state, action chosen, whether a reward was obtained, and the
-	 state that resulted from the action. This is later used to train the network
-	 Remember that the utility of an action is evaluated from the reward gained and
-	 the utility of the state it led to (recursive definition)
---]] 
-function Experience(state0, action0, reward0, state1) 
-   local Experience = {};
-   Experience.state0 = state0;
-   Experience.action0 = action0;
-   Experience.reward0 = reward0;
-   Experience.state1 = state1;
-   return Experience;
-end
-
 -- BRAIN
 
 function Brain.init(num_states, num_actions)
@@ -148,10 +133,14 @@ function Brain.init(num_states, num_actions)
 	-- parameters for optim.sgd
 	Brain.parameters, Brain.gradParameters = Brain.net:getParameters()
 	
+	io.write(string.format('\nAllocating %.2f GB for experience table...\n\n', (4 * Brain.experience_size * Brain.net_inputs)/(1024^3)))
+	-- experience table
+	Brain.experience = torch.Tensor(Brain.experience_size * Brain.net_inputs)
+	-- tracks number of experiences input into the experience table
+	Brain.eCount = 0
 	-- These windows track old experiences, states, actions, rewards, and net inputs
 	-- over time. They should all start out as empty with a fixed size.
 	-- This is a first in, last out data structure that is shifted along time
-   Brain.experience = {};
    Brain.state_window = {}
    Brain.action_window = {}
    Brain.reward_window = {}
@@ -191,8 +180,7 @@ end
   -- compute the value of doing any action in this state
   -- and return the argmax action and its value
 function Brain.policy(state)   
-  local tensor_state = torch.Tensor(state)
-  local action_values = Brain.net:forward(tensor_state);
+  local action_values = Brain.net:forward(state);
   
   local maxval = action_values[1]
   local max_index = 1
@@ -250,6 +238,7 @@ function Brain.forward(input_array)
     -- our network input then we'll proceed to let our network choose the action
   if(Brain.forward_passes > Brain.temporal_window ) then
     net_input = Brain.getNetInput(input_array);
+    net_input = torch.Tensor(net_input)
     
     -- if learning is turned on then epsilon should be decaying
     if(Brain.learning) then
@@ -309,54 +298,72 @@ function Brain.backward(reward)
          return; 
       end
       
+	-- sizes of tensors
+	local e_size
+	local state0_size
+	local action0_size
+	local reward0_size
+	local state1_size
+      
       Brain.age = Brain.age + 1;
       
       -- if we've had enough states and actions to fill up our net input then add
       -- this new experience to our history
       if(Brain.forward_passes > Brain.temporal_window + 1) then
       	-- make experience and fill it up
-        local e = Experience(nil, nil, nil, nil);
         local n = Brain.window_size;
-        e.state0 = Brain.net_window[n-1];
-        e.action0 = Brain.action_window[n-1];
-        e.reward0 = Brain.reward_window[n-1];
-        e.state1 = Brain.net_window[n];
+	local state0 = Brain.net_window[n-1]:clone();
+	state0_size = state0:size(1)
+	local action0 = torch.Tensor({Brain.action_window[n-1]});
+	action0_size = action0:size(1)
+	local reward0 = torch.Tensor({Brain.reward_window[n-1]});
+	reward0_size = reward0:size(1)
+	local state1 = Brain.net_window[n]:clone();
+	state1_size = state1:size(1)
         
-        -- if our experience table isn't larger than the max size then expand
-        if(table.length(Brain.experience) < Brain.experience_size) then
-          table.insert(Brain.experience, e)
+        local e = torch.cat({state0, action0, reward0, state1})
+	e_size = e:size(1) -- experience table size
+        
+        -- if the number of experiences isn't larger than the max then add more
+        if(Brain.eCount < Brain.experience_size) then
+          Brain.experience:sub(Brain.eCount*e_size + 1, (Brain.eCount + 1)*e_size):copy(e)
+	  Brain.eCount = Brain.eCount + 1 -- track number of experiences
         else 
-          -- Otherwise replace random experience. finite memory!
-          local ri = torch.random(1, Brain.experience_size);
-          Brain.experience[ri] = e;
+	-- Otherwise replace random experience due to finite allocated memory for the experience table
+	  local ri = torch.random(0, Brain.eCount-1);
+	  Brain.experience:sub(ri*e_size + 1, (ri + 1)*e_size):copy(e)
         end
       end
       
       -- if we have enough experience in memory then start training
-     if(table.length(Brain.experience) > Brain.start_learn_threshold) then
+     if(Brain.eCount > Brain.start_learn_threshold) then
 		inputs = torch.Tensor(Brain.batch_size, Brain.net_inputs)
 		targets = torch.Tensor(Brain.batch_size, Brain.net_outputs) 
 	
         for k = 1, Brain.batch_size do
         	-- choose random experience
-        	local re = math.random(1, table.length(Brain.experience));
-          	local e = Brain.experience[re];
+        	local re = math.random(0, Brain.eCount-1);
+          	local e = torch.Tensor(Brain.experience:sub(re*e_size + 1, (re + 1)*e_size))
           
-          -- copy state from experience
-          	local x = torch.Tensor(e.state0);
+          	-- copy state from experience
+          	local state0 = e:sub(1, state0_size):clone()
    
-   			-- compute best action for the new state
-          	local best_action = Brain.policy(e.state1);
+   		-- compute best action for the new state
+   		local state1 = e:sub(state0_size + action0_size + reward0_size + 1, state0_size + action0_size + reward0_size + state1_size):clone()
+          	
+          	local best_action = Brain.policy(state1);
    
    			--[[ get current action output values
    				we want to make the target outputs the same as the actual outputs
    				expect for the action that was chose - we want to replace this with
 	   			the reward that was obtained + the utility of the resulting state
    			--]]
-   			local all_outputs = Brain.net:forward(x);
-		  	inputs[k] = x:clone();      	
+   			local all_outputs = Brain.net:forward(state0);
+		  	inputs[k] = state0:clone();      	
 		  	targets[k] = all_outputs:clone();
-		  	targets[k][e.action0] = e.reward0 + Brain.gamma * best_action.value;   
+		  	local action0 = e:sub(state0_size + 1, state0_size + action0_size)
+			local reward0 = e:sub(state0_size + action0_size + 1, state0_size + action0_size + reward0_size)
+		  	targets[k][action0[1]] = reward0[1] + Brain.gamma * best_action.value;   
 		end
 
 		-- create training function to give to optim.sgd
