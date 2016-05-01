@@ -12,9 +12,11 @@ series of decisions in order to accomplish a given task. However, that task itse
 well-defined and the intermediate decisions to accomplish it are often complex and ever-changing.
 Furthermore, information that contributes to accomplishing the task is often not readily available
 until critical intermediate decisions have already been made. Video games are a good example of
-situations in which a series of actions is required in order to accomplish a task. In recent years
-very robust algorithms utilizing these concepts have been developed and applied successfully to retro
-Atari video games: http://arxiv.org/pdf/1312.5602v1.pdf.
+situations in which a series of actions is required in order to accomplish a task.
+
+This application also presents an AI based approach to learning a game where the rules aren't
+immediately known. In recent years very robust algorithms utilizing these concepts have been developed and applied 
+successfully to retro Atari video games: http://arxiv.org/pdf/1312.5602v1.pdf.
 
 Reinforcement learning methods that encourage both exploration and strategizing have been developed in
 order to address this problem. One of these methods, called Q-learning, utilizes a policy in order to
@@ -36,6 +38,12 @@ However, this package is designed for a browser and used primarily as a learning
 partial port of the Q-learning component of this package to the Lua scripting language. The Neural Network 
 component is powered by Torch 7, a scientific computing framework used for machine learning. It is the hope 
 of the authors that this package can be used to fuel further scientific inquiry into this topic.
+
+The JS implementation of DeepQLearning can be found at: 
+https://cs.stanford.edu/people/karpathy/convnetjs/demo/rldemo.html
+
+This page also contains a broswer game that the JS Qlearning engine learns from scratch. If the settings are optimized
+then after about 15 minutes the application will have learned to play the game flawlessy.
 
 
 Installation and Use
