@@ -5,8 +5,7 @@ Written by Blake Milner and Jeff Soldate, with help from Eugenio Culurciello and
 done as part of a project for BME495, a Computational Neuroscience course at Purdue. The original
 code, written in JavaScript, was developed by Andrej Karpathy, a Ph.D. student at Stanford University.
 
-Deep Q Learning is a powerful machine learning algorithm utilizing Q-Learning via internal Neural Networks.
-This aplication was implemented using Torch 7 and Lua.
+Deep Q Learning is a powerful machine learning algorithm utilizing Q-Learning. The state space is implemented using Neural Networks, thus bypassing inefficient static look up tables. This aplication was implemented using Torch 7 and Lua.
 
 In many practical engineering scenarios it is often necessary for an algorithm to perform a
 series of decisions in order to accomplish a given task. However, that task itself is not always
