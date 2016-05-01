@@ -133,9 +133,10 @@ function Brain.init(num_states, num_actions)
 	-- parameters for optim.sgd
 	Brain.parameters, Brain.gradParameters = Brain.net:getParameters()
 	
-	io.write(string.format('\nAllocating %.2f GB for experience table...\n\n', (4 * Brain.experience_size * Brain.net_inputs)/(1024^3)))
+	local exp_table_size = (Brain.experience_size + 1) * (Brain.net_inputs * 2 + 2)
+	io.write(string.format('\nAllocating %.2f GB for experience table...\n\n', (4 * exp_table_size)/(1024^3)))
 	-- experience table
-	Brain.experience = torch.Tensor(Brain.experience_size * Brain.net_inputs)
+	Brain.experience = torch.Tensor(exp_table_size)
 	-- tracks number of experiences input into the experience table
 	Brain.eCount = 0
 	-- These windows track old experiences, states, actions, rewards, and net inputs
