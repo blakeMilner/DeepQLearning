@@ -5,8 +5,8 @@ Written by Blake Milner and Jeff Soldate, with help from Eugenio Culurciello and
 done as part of a project for BME495, a Computational Neuroscience course at Purdue. The original
 code, written in JavaScript, was developed by Andrej Karpathy, a Ph.D. student at Stanford University.
 
-A powerful machine learning algorithm utilizing Q-Learning and Neural Networks, implemented using Torch
-and Lua.
+Deep Q Learning is a powerful machine learning algorithm utilizing Q-Learning via internal Neural Networks.
+This aplication was implemented using Torch 7 and Lua.
 
 In many practical engineering scenarios it is often necessary for an algorithm to perform a
 series of decisions in order to accomplish a given task. However, that task itself is not always
@@ -21,14 +21,14 @@ Reinforcement learning methods that encourage both exploration and strategizing 
 order to address this problem. One of these methods, called Q-learning, utilizes a policy in order to
 select an optimal action.
 
-The Q-learning algorithm hinges on utility function called the Q-function. This function
+The Q-learning algorithm hinges on a utility function called the Q-function. This function
 accepts a state that contains all pertinent information about the playing field along with a possible
 action. The function returns a number that describes the utility of that action. In Q-learning the utility
 of an action is evaluated based on the immediate reward gained from taking that action and the
 possibility of a delayed reward that the action may lead to. For large games with many states and possible
 actions the above approach is very time-consuming and computationally intense. Using a neural network to
-represent the Q-function can solve many of these issues by eliminating the need for enumeration for complete
-exploration of the state space.
+represent the Q-function can solve many of these issues by eliminating the need for enumeration in order to completely
+support the exploration of the state space.
 
 An implementation of the method described above (written in JavaScript) exists and is freely available:
 http://cs.stanford.edu/people/karpathy/convnetjs/demo/rldemo.html
