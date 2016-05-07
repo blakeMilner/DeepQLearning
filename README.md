@@ -39,9 +39,6 @@ partial port of the Q-learning component of this package to the Lua scripting la
 component is powered by Torch 7, a scientific computing framework used for machine learning. It is the hope 
 of the authors that this package can be used to fuel further scientific inquiry into this topic.
 
-The JS implementation of DeepQLearning can be found at: 
-https://cs.stanford.edu/people/karpathy/convnetjs/demo/rldemo.html
-
 This page also contains a broswer game that the JS Qlearning engine learns from scratch. If the settings are optimized
 then after about 15 minutes the application will have learned to play the game flawlessy.
 
